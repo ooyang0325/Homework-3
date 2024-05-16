@@ -62,11 +62,10 @@ class EqualWeightPortfolio:
         # Get the assets by excluding the specified column
         assets = df.columns[df.columns != self.exclude]
         self.portfolio_weights = pd.DataFrame(index=df.index, columns=df.columns)
-
         """
         TODO: Complete Task 1 Below
         """
-
+        self.portfolio_weights.loc[:, assets] = 1 / (len(assets)-1)
         """
         TODO: Complete Task 1 Above
         """
@@ -117,7 +116,9 @@ class RiskParityPortfolio:
         """
         TODO: Complete Task 2 Below
         """
-
+        for i in range(self.lookback + 1, len(df)):
+            vola = df_returns.copy()[assets].iloc[i - self.lookback : i].std()
+            self.portfolio_weights.loc[df.index[i], assets] = (1/vola) / (1/vola).sum()
         """
         TODO: Complete Task 2 Above
         """
@@ -193,10 +194,12 @@ class MeanVariancePortfolio:
                 # Sample Code: Initialize Decision w and the Objective
                 # NOTE: You can modify the following code
                 w = model.addMVar(n, name="w", ub=1)
-                model.setObjective(w.sum(), gp.GRB.MAXIMIZE)
+                model.addConstr(w.sum() == 1)
+                model.addConstr(w >= 0)
+                model.setObjective((w@mu-(gamma/2)*w@Sigma@w), gp.GRB.MAXIMIZE)
 
                 """
-                TODO: Complete Task 3 Below
+                TODO: Complete Task 3 Above
                 """
                 model.optimize()
 
